@@ -184,6 +184,7 @@
 <script>
   // Google Apps Script endpoint (shared spreadsheet with TV Production & PGISHA)
   const FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbzVAgmrXUC-NODtMdKEKgpKwjd1nlCZiPlGLkueY1l7iDzLrgI3qXnCfye1mHnUP-C1/exec";
+  const ZAPIER_ENDPOINT = "https://hooks.zapier.com/hooks/catch/13094095/49s1tz5/";
   // Put the real video URL here (mp4 file, e.g. "assets/video.mp4"). Empty = play button does nothing yet.
   const VIDEO_SRC = "";
   const KEY = "tv_lead_unlocked";
@@ -219,16 +220,21 @@
     if (!ok) return form.querySelector(".err input").focus();
     const btn = form.querySelector(".btn"); btn.disabled = true;
     const data = Object.fromEntries(new FormData(form));
+    const fullName = data.fullName.trim();
+    const firstName = fullName.split(/\s+/)[0] || fullName;
+    const email = data.email.trim();
+    const phone = data.phone.trim();
+
+    const requests = [];
     if (FORM_ENDPOINT) {
-      try {
-        const formData = new URLSearchParams();
-        formData.append("source", "matana");
-        formData.append("fullName", data.fullName.trim());
-        formData.append("email", data.email.trim());
-        formData.append("phone", data.phone.trim());
-        await fetch(FORM_ENDPOINT, { method: "POST", body: formData, mode: "no-cors" });
-      } catch (e) {}
+      const formData = new URLSearchParams({ source: "matana", fullName, firstName, email, phone });
+      requests.push(fetch(FORM_ENDPOINT, { method: "POST", body: formData, mode: "no-cors" }));
     }
+    if (ZAPIER_ENDPOINT) {
+      const zapierData = new URLSearchParams({ source: "matana", fullName, firstName, email, phone });
+      requests.push(fetch(ZAPIER_ENDPOINT, { method: "POST", body: zapierData, mode: "no-cors" }));
+    }
+    try { await Promise.allSettled(requests); } catch (e) {}
     try { localStorage.setItem(KEY, "1"); } catch (e) {}
     unlock();
   });

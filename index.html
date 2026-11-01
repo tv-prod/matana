@@ -182,8 +182,8 @@
   </section>
 </main>
 <script>
-  // TODO: set to the real endpoint (webhook / Google Sheets / CRM). Empty = no network call, form just unlocks the video.
-  const FORM_ENDPOINT = "";
+  // Google Apps Script endpoint (shared spreadsheet with TV Production & PGISHA)
+  const FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbzVAgmrXUC-NODtMdKEKgpKwjd1nlCZiPlGLkueY1l7iDzLrgI3qXnCfye1mHnUP-C1/exec";
   // Put the real video URL here (mp4 file, e.g. "assets/video.mp4"). Empty = play button does nothing yet.
   const VIDEO_SRC = "";
   const KEY = "tv_lead_unlocked";
@@ -220,7 +220,14 @@
     const btn = form.querySelector(".btn"); btn.disabled = true;
     const data = Object.fromEntries(new FormData(form));
     if (FORM_ENDPOINT) {
-      try { await fetch(FORM_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); } catch (e) {}
+      try {
+        const formData = new URLSearchParams();
+        formData.append("source", "matana");
+        formData.append("fullName", data.fullName.trim());
+        formData.append("email", data.email.trim());
+        formData.append("phone", data.phone.trim());
+        await fetch(FORM_ENDPOINT, { method: "POST", body: formData, mode: "no-cors" });
+      } catch (e) {}
     }
     try { localStorage.setItem(KEY, "1"); } catch (e) {}
     unlock();

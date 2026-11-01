@@ -223,7 +223,7 @@
     const fullName = data.fullName.trim();
     const firstName = fullName.split(/\s+/)[0] || fullName;
     const email = data.email.trim();
-    const phone = data.phone.trim();
+    const phone = data.phone.replace(/[\s\-().]/g, "").replace(/^\+?972/, "0");
 
     const requests = [];
     if (FORM_ENDPOINT) {
